@@ -110,11 +110,11 @@ list_installed() {
 list_locs() {
   rm -f $MODDIR/tmp
   local num=0
-  echo "0: Go back to main menu"
+  echo "${Y}0${N}: Go back to main menu"
   for i in $locs; do
     [ -d "$i" ] || continue
     num=$((num+1))
-    echo "$num: $i" | tee -a $MODDIR/tmp;
+    echo "${Y}$num${N}: $i" | tee -a $MODDIR/tmp;
   done
 }
 
@@ -122,8 +122,8 @@ change_loc() {
   [ -f $MODDIR/.loc ] && insloc="$(cat $MODDIR/.loc)"
   while true; do
     echo "$div"
-    title_div "Current install location:"
-    title_div "$insloc"
+    title_div "${Y}Current install location:"
+    title_div "${Y}$insloc"
     echo "$div"
     title_div "Change to which location?"
     echo "$div"
@@ -135,20 +135,20 @@ change_loc() {
       case $choice in
         0) break 2;;
         q) quit;;
-        *) echo "Invalid option! Try again";;
+        *) echo "${R}Invalid option! Try again";;
       esac
     done
     insloc="$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null | awk '{print $2}')"
     mkdir $MODDIR$insloc 2>/dev/null
     echo $insloc > $MODDIR/.loc
-    echo -e "Install location has been changed to $insloc\n"
+    echo -e "${G}Install location has been changed to $insloc\n"
     break
   done
 }
 
 check_conflicts() {
   find $MOUNTPATH/*$insloc -mindepth 1 -maxdepth 1 -type f ! -path "$MOUNTPATH/\.*" ! -path "$MOUNTPATH/ccbins/*" \( -name $i \) 2>/dev/null | sed -r "s|$MOUNTPATH/(.*)/system/.*|\1|" > $MODDIR/tmp2
-  [ -s $MODDIR/tmp2 ] && echo -e "  Conflict ($insloc/$i) found in: $(cat $MODDIR/tmp2)!"
+  [ -s $MODDIR/tmp2 ] && echo -e "  ${R}Conflict ($insloc/$i) found in: $(cat $MODDIR/tmp2)!"
   rm -f $MODDIR/tmp2
 }
 
@@ -203,7 +203,7 @@ install_ncursesw() {
   wget -O $MODDIR/system/ncursesw.zip https://github.com/Zackptg5/Cross-Compiled-Binaries-Android/raw/$branch/ncursesw/ncursesw-$ARCH.zip 2>/dev/null
   unzip -qod $MODDIR/system $MODDIR/system/ncursesw.zip
   rm -f $MODDIR/system/ncursesw.zip
-  $update && echo " - NCursesw has been updated!" || echo " - NCursesw has been installed!"
+  $update && echo " - ${G}NCursesw has been updated!" || echo " - ${G}NCursesw has been installed!"
 }
 
 check_bin_updates() {
@@ -240,7 +240,7 @@ check_bin_updates() {
     sed -i "\|$binary.*$binloc| s/$insver/$newver/" $MODDIR/.installed
     remove_binary -f
     install_binary
-    echo " - $binary has been updated!"
+    echo " - ${G}$binary has been updated!"
   done < $MODDIR/.installed
 }
 
@@ -248,7 +248,7 @@ remove_binary_menu() {
   clear
   while true; do
     grep -w "$insloc" $MODDIR/.installed | awk '{print FNR + 1 ": " $1 " " $2}' > $MODDIR/tmp
-    [ -s $MODDIR/tmp ] && sed -i "1i0: None, go back to main menu\n1: Remove all binaries listed below" $MODDIR/tmp || { print_pause "No binaries are installed to $insloc!\n"; break; }
+    [ -s $MODDIR/tmp ] && sed -i "1i${Y}0${N}: None, go back to main menu\n1: Remove all binaries listed below" $MODDIR/tmp || { print_pause "${R}No binaries are installed to $insloc!\n"; break; }
     echo "$div"
     title_div "Remove which binary?"
     echo "$div"
@@ -272,7 +272,7 @@ remove_binary_menu() {
       is_mounted $insloc/$ibinary && local unmount=true || local unmount=false
       remove_binary
       toybox find $MODDIR/system -type d -empty -delete >/dev/null 2>&1
-      echo -e "$binary has been removed!\n"
+      echo -e "${G}$binary has been removed!\n"
     done
   done
   clear
@@ -294,8 +294,8 @@ install_binary_menu() {
     echo "$div"
     title_div "Install which binary?"
     echo "$div"
-    title_div "Current install location:"
-    title_div "$insloc"
+    title_div "${Y}Current install location:"
+    title_div "${Y}$insloc"
     echo "$div"
     cat $MODDIR/tmp
     while true; do
@@ -306,20 +306,20 @@ install_binary_menu() {
           0) break 3;;
           1) choice="$(awk '{print $1}' $MODDIR/tmp | sed -E -e '/^0:|^1:/d' -e 's/://' | tr '\n' ' ')"
              if [ "$(grep -w 'Busybox' $MODDIR/tmp)" ]; then
-              echo -e "Which box?\n1: Busybox\n2: Coreutils"
+              echo -e "Which box?\n${Y}1${N}: Busybox\n${Y}2${N}: Coreutils"
               while true; do
                 read -r choice2?'--> '
                 echo " "
                 case $choice2 in
                   1) choice="$(echo "$choice" | sed "s/$(grep -w 'Coreutils' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
                   2) choice="$(echo "$choice" | sed "s/$(grep -w 'Busybox' $MODDIR/tmp | awk '{print substr($1, 1, length($1) - 1)}') *//")"; break;;
-                  *) echo "Invalid option: $j! Try again";;
+                  *) echo "${R}Invalid option: $j! Try again";;
                 esac
               done
             fi
              break 2;;
           q) quit;;
-          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "Invalid option: $i! Try again";;
+          *) [ "$(grep -w "$i:" $MODDIR/tmp 2>/dev/null)" ] && break 2 || echo "${R}Invalid option: $i! Try again";;
         esac
       done
     done
@@ -330,9 +330,9 @@ install_binary_menu() {
       echo "Downloading $binary"
       mkdir -p $MODDIR$insloc
       install_binary -s
-      echo -e " - $binary has been installed!\n"
+      echo -e " - ${G}$binary has been installed!\n"
     done
-    echo -e "Reboot for changes to take effect\n"
+    echo -e "${Y}Reboot for changes to take effect\n"
   done
   clear
 }
@@ -343,7 +343,7 @@ backup_config() {
   cp -pf $MODDIR/.* $bakloc 2>/dev/null
   cp -af $MODDIR/system $bakloc
   rm -f $bakloc/system/bin/ccbins
-  echo -e "Current config backed up!\n"
+  echo -e "${G}Current config backed up!\n"
   sleep 2
 }
 
@@ -356,7 +356,7 @@ restore_config() {
   cp -pf $bakloc/.* $newloc 2>/dev/null
   cp -pf $MODDIR/system/bin/ccbins $newloc/system/bin/ccbins
   touch $MODDIR/update
-  echo -e "Old config restored!\nReboot to apply it!\n"
+  echo -e "${G}Old config restored!${N}\n${Y}Reboot to apply it!\n"
   sleep 2
 }
 
@@ -372,28 +372,28 @@ force_update() {
 
 hidden_menu() {
   wget -qO - https://api.github.com/repos/Zackptg5/Cross-Compiled-Binaries-Android/branches 2>/dev/null | grep "name" | awk '{print FNR ": " substr($2, 2, length($2) -3)}' > $MODDIR/tmp
-  sed -i "1i0: Keep current branch, go back to main menu" $MODDIR/tmp
+  sed -i "1i${Y}0${N}: Keep current branch, go back to main menu" $MODDIR/tmp
   while true; do
     clear
     echo "$div"
     title_div "Welcome to the dark side"
     echo "$div"
     $online || { echo -e "Internet is needed for this, going back to main menu\n"; return 0; }
-    title_div "Current branch:"
-    title_div "$branch"
+    title_div "${Y}Current branch:"
+    title_div "${Y}$branch"
     echo "$div"
     title_div "Choose option:"
     echo "$div"
-    echo "0: Go back to main menu"
-    echo "1: Force update"
-    echo "2: Switch branch"
+    echo "${Y}0${N}: Go back to main menu"
+    echo "${Y}1${N}: Force update"
+    echo "${Y}2${N}: Switch branch"
     while true; do
       read -r choice?'--> '
       echo " "
       case $choice in
         0|1|2) break;;
         q) quit;;
-        *) echo "Invalid option! Try again";;
+        *) echo "${R}Invalid option! Try again";;
       esac
     done
     case $choice in
@@ -409,7 +409,7 @@ hidden_menu() {
            case $choice in
              0) break 2;;
              q) quit;;
-             *) [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break || echo "Invalid option: $choice! Try again";;
+             *) [ "$(grep -w "$choice:" $MODDIR/tmp 2>/dev/null)" ] && break || echo "${R}Invalid option: $choice! Try again";;
            esac
          done
          branch=$(grep -w "$choice:" $MODDIR/tmp | awk '{print $2}')
@@ -423,7 +423,7 @@ hidden_menu() {
 
 find $MODDIR/system -type l -delete
 sed -i '/find $MODDIR\/system -type l -delete/,+1 d' $MODDIR/system/bin/ccbins
-scriptver=7
+scriptver=8
 branch=master
 dir=`pwd`; bakloc=/data/local/ccbinsbackup
 locs="/system/bin /system/xbin /system/vendor/bin /system/vendor/xbin /system/product/bin /system/product/xbin"
@@ -432,7 +432,7 @@ rm -f $MODDIR/tmp
 mod_head
 echo " "
 if [ -f $MODDIR/.updated ]; then
-  echo "CCBins succesfully updated!"
+  echo "${G}CCBins succesfully updated!"
   local oldver="$(cat $MODDIR/.updated)" newver="$scriptver"
   local oldline=$(sed -n "/^$oldver/=" $MODDIR/.changelog) newline=$(sed -n "/^$newver/=" $MODDIR/.changelog)
   if [ $oldver -lt $newver ]; then
@@ -450,35 +450,35 @@ if test_connection; then
   wget -qO $MODDIR/.binaries https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/$branch/ccbins_files/includes.txt 2>/dev/null & e_spinner
   echo " - Done"
   check_updates & e_spinner
-  [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting"; ccbins && quit; } || echo " - Ccbins is up to date"
+  [ -f $MODDIR/.updated ] && { echo -e " - Applying mod updates and restarting"; ccbins && quit; } || echo " - ${G}Ccbins is up to date"
   check_bin_updates & e_spinner
-  [ -f $MODDIR/tmp ] && echo -e " - Done\n" || echo -e " - Binaries are up to date\n"
+  [ -f $MODDIR/tmp ] && echo -e " - Done\n" || echo -e " - ${G}Binaries are up to date\n"
 else
   online=false
-  echo -e "No internet connection!\nOnline functionality disabled"
+  echo -e "${R}No internet connection!\nOnline functionality disabled"
 fi
 find_conflicts & e_spinner
-[ -s $MODDIR/tmp ] && { echo -e " - The following conflicts were found:\n"; cat $MODDIR/tmp; sleep 3; } || echo " - No conflicting mods were found"
+[ -s $MODDIR/tmp ] && { echo -e " - ${R}The following conflicts were found:\n"; cat $MODDIR/tmp; sleep 3; } || echo " - ${G}No conflicting mods were found"
 echo " "
 
 while true; do
   echo "$div"
-  title_div "Binary Installer"
+  title_div "${Y}Binary Installer"
   echo "$div"
-  echo "Current install location:"
+  echo "${Y}Current install location:"
   echo "$insloc"
   echo "$div"
-  title_div "Choose option"
+  title_div "${Y}Choose option"
   echo "$div"
-  echo "0: Refresh CCbins (remove everything - start fresh)"
-  echo "1: Change install location"
-  echo "2: List all installed binaries"
-  echo "3: List all downloadable binaries"
-  echo "4: Remove binary"
-  $online && echo "5: Install binary"
-  [ -s $MODDIR/.installed ] && echo "6: Backup current config"
-  [ -d $bakloc ] && echo -e "7: Restore last config\n8: Erase backup config"
-  echo "Type 'q' at any time to quit"
+  echo "${Y}0${N}: Refresh CCbins (remove everything - start fresh)"
+  echo "${Y}1${N}: Change install location"
+  echo "${Y}2${N}: List all installed binaries"
+  echo "${Y}3${N}: List all downloadable binaries"
+  echo "${Y}4${N}: Remove binary"
+  $online && echo "${Y}5${N}: Install binary"
+  [ -s $MODDIR/.installed ] && echo "${Y}6${N}: Backup current config"
+  [ -d $bakloc ] && echo -e "${Y}7${N}: Restore last config\n${Y}8${N}: Erase backup config"
+  echo "Type '${Y}q${N}' at any time to quit"
   while true; do
     read -r choice?'--> '
     echo " "

@@ -1,3 +1,6 @@
+8 - 3.26.2020
+* Added some colorized text output
+
 7 - 3.12.2020
 * Added zstd symlink stuff
 * Fix issues with vendor bins
